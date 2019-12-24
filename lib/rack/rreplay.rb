@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'securerandom'
 require 'msgpack'
-require "json"
+require 'json'
 require 'time'
 
 module Rack
@@ -13,7 +15,7 @@ module Rack
     # @params kwargs[:format] :msgpack | :json
     def initialize(app, out = $stdout, **kwargs)
       @app = app
-      @out = out.respond_to?(:call) ? -> (str) { out.call(str) } : -> (str) { out.write(str) }
+      @out = out.respond_to?(:call) ? ->(str) { out.call(str) } : ->(str) { out.write(str) }
       @sample = kwargs[:sample] || 10
       @extra_header_keys = kwargs[:extra_header_keys] || []
       @marshaller = Marshaller.new(kwargs[:format])
@@ -43,7 +45,7 @@ module Rack
         'uuid' => uuid,
         'time' => time,
         'request' => request_hash(env),
-        'response' => response_hash(res),
+        'response' => response_hash(res)
       }
       @marshaller.run(hash)
     end
@@ -53,24 +55,24 @@ module Rack
       {
         'status' => status,
         'headers' => headers,
-        'body' => body,
+        'body' => body
       }
     end
 
     def request_hash(env)
       headers = {
         'content_type' => env['CONTENT_TYPE'],
-        'cookie' => env['HTTP_COOKIE'],
+        'cookie' => env['HTTP_COOKIE']
       }
       @extra_header_keys.each do |key|
-        headers.merge!({ key => env["HTTP_#{key}"] })
+        headers.merge!(key => env["HTTP_#{key}"])
       end
 
       {
         'path' => env['PATH_INFO'],
         'body' => env['rack.input'].gets,
-        'query_strings' => env["QUERY_STRING"].empty? ? "" : "?"+env["QUERY_STRING"],
-        'headers' => headers,
+        'query_strings' => env['QUERY_STRING'].empty? ? '' : '?' + env['QUERY_STRING'],
+        'headers' => headers
       }
     end
   end
@@ -81,9 +83,9 @@ module Rack
     def initialize(format = :msgpack)
       case format
       when :msgpack then
-        @runner = lambda { |obj| MessagePack.pack(obj) }
+        @runner = ->(obj) { MessagePack.pack(obj) }
       when :json then
-        @runner = lambda { |obj| JSON.dump(obj) }
+        @runner = ->(obj) { JSON.dump(obj) }
       end
     end
 
