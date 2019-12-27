@@ -110,37 +110,21 @@ module Rack
       end
     end
 
+    private
+
+      class Serializer
+        def initialize(format = :msgpack)
+          case format
+          when :msgpack then
+            @runner = ->(obj) { MessagePack.pack(obj) }
+          when :json then
+            @runner = ->(obj) { JSON.dump(obj) }
+          end
+        end
+
+        def run(obj)
+          @runner.call(obj)
+        end
+      end
   end
-
-  private
-
-    class Serializer
-      def initialize(format = :msgpack)
-        case format
-        when :msgpack then
-          @runner = ->(obj) { MessagePack.pack(obj) }
-        when :json then
-          @runner = ->(obj) { JSON.dump(obj) }
-        end
-      end
-
-      def run(obj)
-        @runner.call(obj)
-      end
-    end
-
-    class Deserializer
-      def initialize(format = :msgpack)
-        case format
-        when :msgpack then
-          @runner = ->(obj) { MessagePack.unpack(obj) }
-        when :json then
-          @runner = ->(obj) { JSON.parse(obj) }
-        end
-      end
-
-      def run(obj)
-        @runner.call(obj)
-      end
-    end
 end
