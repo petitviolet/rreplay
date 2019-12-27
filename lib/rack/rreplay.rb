@@ -7,6 +7,8 @@ require 'time'
 
 module Rack
   class Rreplay
+    LOG_FILE_NAME = 'rreplay.log'
+
     class << self
       # ==sample
       # use Rack::Rreplay.Middleware(directory: './tmp'),
@@ -17,7 +19,7 @@ module Rack
       def Middleware(directory:, logger: nil)
         if directory
           ::FileUtils.mkdir_p(directory)
-          _logger = ::Logger::LogDevice.new(::File.join(directory, "rreplay.log"), shift_age: 10, shift_size: 1048576)
+          _logger = ::Logger::LogDevice.new(::File.join(directory, LOG_FILE_NAME), shift_age: 10, shift_size: 1048576)
         else
           _logger = logger
         end
