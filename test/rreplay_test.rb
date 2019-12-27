@@ -48,7 +48,8 @@ class RreplayTest < Minitest::Unit::TestCase
       },
     }
     run_request(env: {}, response: {}) do |app|
-      Rack::Rreplay.new(app, output, sample: 1, extra_header_keys: %w[ACCESS_TOKEN], format: :json)
+      Rack::Rreplay.Middleware(directory: nil, logger: output)
+        .new(app, sample: 1, extra_header_keys: %w[ACCESS_TOKEN], format: :json)
     end
 
     assert_json_match(expected, JSON.parse(output.string))
