@@ -8,13 +8,13 @@ require 'time'
 module Rack
   class Rreplay
     class << self
-      def middleware(directory: )
+      def Middleware(directory: )
         ::FileUtils.mkdir_p(directory)
         logger = ::Logger::LogDevice.new(::File.join(directory, "rreplay.log"), shift_age: 10, shift_size: 1048576)
         class_definition(logger)
       end
 
-      def class_definition(logger)
+      private def class_definition(logger)
         Class.new do
           @@counter = 0
           @@logger = logger
