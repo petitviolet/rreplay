@@ -25,10 +25,10 @@ module Rack
           @@counter = 0
           @@logger = logger
 
-          # @params out [has #call or #write method] used for output request/response logs
           # @params kwargs[:sample] [Integer] output sample (if 10, output a log once every 10 requests)
           # @params kwargs[:extra_header_keys] [Array[String]] more header keys
           # @params kwargs[:format] :msgpack | :json
+          # @params kwargs[:debug] if true, output debugging logs to stderr
           def initialize(app, **kwargs)
             @app = app
             @debug = kwargs[:debug] || false
