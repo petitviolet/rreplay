@@ -89,8 +89,9 @@ module Rack
 
           def request_hash(env)
             headers = {
-              'content_type' => env['CONTENT_TYPE'],
-              'cookie' => env['HTTP_COOKIE']
+              'content-type' => env['CONTENT_TYPE'],
+              'cookie' => env['HTTP_COOKIE'],
+              'user-agent' => env['HTTP_USER_AGENT'],
             }
             @extra_header_keys.each do |key|
               headers.merge!(key => env["HTTP_#{key}"])

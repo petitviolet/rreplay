@@ -36,7 +36,8 @@ class RreplayTest < Minitest::Unit::TestCase
         body: nil,
         headers: {
           ACCESS_TOKEN: nil,
-          content_type: nil,
+          :'content-type' => nil,
+          :'user-agent' => nil,
           cookie: nil
         },
         path: '/',
