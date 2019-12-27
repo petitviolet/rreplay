@@ -35,7 +35,7 @@ module Rack
           # @params kwargs[:extra_header_keys] [Array[String]] more header keys
           # @params kwargs[:format] :msgpack | :json
           # @params kwargs[:debug] if true, output debugging logs to stderr
-          def initialize(app, **kwargs)
+          def initialize(app, kwargs)
             @app = app
             @debug = kwargs[:debug] || false
             @sample = kwargs[:sample] || 10
