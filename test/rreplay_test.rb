@@ -32,6 +32,7 @@ class RreplayTest < Minitest::Unit::TestCase
       time: time,
       uuid: String,
       request: {
+        method: 'GET',
         body: nil,
         headers: {
           ACCESS_TOKEN: nil,

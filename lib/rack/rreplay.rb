@@ -97,6 +97,7 @@ module Rack
             end
 
             {
+              'method' => env['REQUEST_METHOD'],
               'path' => env['PATH_INFO'],
               'body' => env['rack.input'].gets,
               'query_strings' => env['QUERY_STRING'].empty? ? '' : '?' + env['QUERY_STRING'],
