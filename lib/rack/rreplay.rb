@@ -15,10 +15,10 @@ module Rack
     # @params kwargs[:format] :msgpack | :json
     def initialize(app, out = $stdout, **kwargs)
       @app = app
-      @out = out.respond_to?(:call) ? ->(str) { out.call(str) } : ->(str) { out.write(str) }
+      @out = out.respond_to?(:call) ? out : ->(str) { out.write(str) }
       @sample = kwargs[:sample] || 10
       @extra_header_keys = kwargs[:extra_header_keys] || []
-      @marshaller = Marshaller.new(kwargs[:format])
+      @serializer = Serializer.new(kwargs[:format])
     end
 
     def call(env)
@@ -29,68 +29,68 @@ module Rack
 
     private
 
-    def write(env, res)
-      if (@@counter % @sample).zero?
-        payload = marshal(env, res)
-        @out.call(payload + "\n")
-      end
-      @@counter += 1
-    end
-
-    def marshal(env, res)
-      uuid = SecureRandom.uuid
-      time = Time.now.iso8601
-
-      hash = {
-        'uuid' => uuid,
-        'time' => time,
-        'request' => request_hash(env),
-        'response' => response_hash(res)
-      }
-      @marshaller.run(hash)
-    end
-
-    def response_hash(res)
-      status, headers, body = res
-      {
-        'status' => status,
-        'headers' => headers,
-        'body' => body
-      }
-    end
-
-    def request_hash(env)
-      headers = {
-        'content_type' => env['CONTENT_TYPE'],
-        'cookie' => env['HTTP_COOKIE']
-      }
-      @extra_header_keys.each do |key|
-        headers.merge!(key => env["HTTP_#{key}"])
+      def write(env, res)
+        if (@@counter % @sample).zero?
+          payload = serialize(env, res)
+          @out.call(payload + "\n")
+        end
+        @@counter += 1
       end
 
-      {
-        'path' => env['PATH_INFO'],
-        'body' => env['rack.input'].gets,
-        'query_strings' => env['QUERY_STRING'].empty? ? '' : '?' + env['QUERY_STRING'],
-        'headers' => headers
-      }
-    end
+      def serialize(env, res)
+        uuid = SecureRandom.uuid
+        time = Time.now.iso8601
+
+        hash = {
+          'uuid' => uuid,
+          'time' => time,
+          'request' => request_hash(env),
+          'response' => response_hash(res)
+        }
+        @serializer.run(hash)
+      end
+
+      def response_hash(res)
+        status, headers, body = res
+        {
+          'status' => status,
+          'headers' => headers,
+          'body' => body
+        }
+      end
+
+      def request_hash(env)
+        headers = {
+          'content_type' => env['CONTENT_TYPE'],
+          'cookie' => env['HTTP_COOKIE']
+        }
+        @extra_header_keys.each do |key|
+          headers.merge!(key => env["HTTP_#{key}"])
+        end
+
+        {
+          'path' => env['PATH_INFO'],
+          'body' => env['rack.input'].gets,
+          'query_strings' => env['QUERY_STRING'].empty? ? '' : '?' + env['QUERY_STRING'],
+          'headers' => headers
+        }
+      end
   end
 
   private
 
-  class Marshaller
-    def initialize(format = :msgpack)
-      case format
-      when :msgpack then
-        @runner = ->(obj) { MessagePack.pack(obj) }
-      when :json then
-        @runner = ->(obj) { JSON.dump(obj) }
+    class Serializer
+      def initialize(format = :msgpack)
+        case format
+        when :msgpack then
+          @runner = ->(obj) { MessagePack.pack(obj) }
+        when :json then
+          @runner = ->(obj) { JSON.dump(obj) }
+        end
+      end
+
+      def run(obj)
+        @runner.call(obj)
       end
     end
-
-    def run(obj)
-      @runner.call(obj)
-    end
-  end
 end
