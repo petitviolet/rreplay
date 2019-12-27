@@ -8,10 +8,16 @@ require 'time'
 module Rack
   class Rreplay
     class << self
-      def Middleware(directory: )
-        ::FileUtils.mkdir_p(directory)
-        logger = ::Logger::LogDevice.new(::File.join(directory, "rreplay.log"), shift_age: 10, shift_size: 1048576)
-        class_definition(logger)
+      # @param directory [String] rreplay dump file directory, and if nil, use logger as debug
+      # @param logger [IO] if directory is nil, logger can be given
+      def Middleware(directory:, logger: nil)
+        if directory
+          ::FileUtils.mkdir_p(directory)
+          _logger = ::Logger::LogDevice.new(::File.join(directory, "rreplay.log"), shift_age: 10, shift_size: 1048576)
+        else
+          _logger = logger
+        end
+        class_definition(_logger)
       end
 
       private def class_definition(logger)
