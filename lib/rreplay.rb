@@ -4,12 +4,13 @@ require 'json'
 require 'net/http'
 require 'uri'
 require_relative 'rreplay/debugger'
+require_relative 'rreplay/format'
 
 module Rreplay
   class ReplayRunner
     def initialize(endpoint, target, format: :msgpack, logger: $stderr)
       @endpoint = endpoint
-      @deserializer = Deserializer.new(format)
+      @format = Rreplay::Format.of(format)
       @target = target
       @debugger = Debugger.new(logger)
     end
@@ -22,7 +23,7 @@ module Rreplay
           file.each_line do |line|
             next if line =~ /\A#/ # LogDevice's header
 
-            request = @deserializer.run(line)["request"]
+            request = @format.deserializer.call(line)["request"]
             http_call(request)
           end
         end
@@ -33,7 +34,7 @@ module Rreplay
 
       def file_names
         if ::File.directory?(@target)
-          ::Dir.glob(::File.join(@target, "#{LOG_FILE_NAME}*"))
+          ::Dir.glob(::File.join(@target, "#{LOG_FILE_NAME_PREFIX}*"))
         else
           Array(@target)
         end
@@ -74,20 +75,4 @@ module Rreplay
 
   private
 
-    class Deserializer
-      def initialize(format = :msgpack)
-        case format.to_sym
-        when :msgpack then
-          @runner = ->(obj) { MessagePack.unpack(obj) }
-        when :json then
-          @runner = ->(obj) { JSON.parse(obj) }
-        else
-          raise "Unknown format '#{format}'"
-        end
-      end
-
-      def run(obj)
-        @runner.call(obj)
-      end
-    end
 end

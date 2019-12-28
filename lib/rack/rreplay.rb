@@ -5,10 +5,11 @@ require 'msgpack'
 require 'json'
 require 'time'
 require_relative '../rreplay/debugger'
+require_relative '../rreplay/format'
 
 module Rack
   class Rreplay
-    LOG_FILE_NAME = 'rreplay.log'
+    LOG_FILE_NAME_PREFIX = 'rreplay.log'
 
     class << self
       # ==sample
@@ -20,11 +21,11 @@ module Rack
       def Middleware(directory:, logger: nil)
         if directory
           ::FileUtils.mkdir_p(directory)
-          _logger = ::Logger::LogDevice.new(::File.join(directory, LOG_FILE_NAME), shift_age: 10, shift_size: 1048576)
+          logger = ::Logger::LogDevice.new(::File.join(directory, LOG_FILE_NAME_PREFIX), shift_age: 10, shift_size: 1048576)
         else
-          _logger = logger
+          logger = logger
         end
-        class_definition(_logger)
+        class_definition(logger)
       end
 
       private def class_definition(logger)
@@ -36,12 +37,12 @@ module Rack
           # @params kwargs[:extra_header_keys] [Array[String]] more header keys
           # @params kwargs[:format] :msgpack | :json
           # @params kwargs[:debug] if true, output debugging logs to stderr
-          def initialize(app, kwargs)
+          def initialize(app, **kwargs)
             @app = app
             @debugger = ::Rreplay::Debugger.new($stderr, kwargs[:debug] || false)
             @sample = kwargs[:sample] || 10
             @extra_header_keys = kwargs[:extra_header_keys] || []
-            @serializer = Serializer.new(kwargs[:format])
+            @format = ::Rreplay::Format.of(kwargs[:format])
           end
 
           def call(env)
@@ -76,7 +77,7 @@ module Rack
               'request' => request_hash(env),
               'response' => response_hash(res)
             }
-            @serializer.run(hash)
+            @format.serializer.call(hash)
           end
 
           def response_hash(res)
@@ -113,19 +114,5 @@ module Rack
 
     private
 
-      class Serializer
-        def initialize(format = :msgpack)
-          case format
-          when :msgpack then
-            @runner = ->(obj) { MessagePack.pack(obj) }
-          when :json then
-            @runner = ->(obj) { JSON.dump(obj) }
-          end
-        end
-
-        def run(obj)
-          @runner.call(obj)
-        end
-      end
   end
 end
