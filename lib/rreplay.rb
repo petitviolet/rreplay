@@ -30,6 +30,7 @@ module Rreplay
     end
 
     private
+
       def file_names
         if ::File.directory?(@target)
           ::Dir.glob(::File.join(@target, "#{LOG_FILE_NAME}*"))
@@ -65,7 +66,7 @@ module Rreplay
         end
 
         Net::HTTP.start(uri.hostname, uri.port,
-                        :use_ssl => uri.scheme == 'https') {|http|
+                        :use_ssl => uri.scheme == 'https') { |http|
           response = http.request(request)
         }
       end
@@ -73,20 +74,20 @@ module Rreplay
 
   private
 
-  class Deserializer
-    def initialize(format = :msgpack)
-      case format.to_sym
-      when :msgpack then
-        @runner = ->(obj) { MessagePack.unpack(obj) }
-      when :json then
-        @runner = ->(obj) { JSON.parse(obj) }
-      else
-        raise "Unknown format '#{format}'"
+    class Deserializer
+      def initialize(format = :msgpack)
+        case format.to_sym
+        when :msgpack then
+          @runner = ->(obj) { MessagePack.unpack(obj) }
+        when :json then
+          @runner = ->(obj) { JSON.parse(obj) }
+        else
+          raise "Unknown format '#{format}'"
+        end
+      end
+
+      def run(obj)
+        @runner.call(obj)
       end
     end
-
-    def run(obj)
-      @runner.call(obj)
-    end
-  end
 end
