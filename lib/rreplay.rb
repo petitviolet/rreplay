@@ -10,13 +10,13 @@ module Rreplay
       @endpoint = endpoint
       @deserializer = Deserializer.new(format)
       @target = target
-      @logger = logger
+      @debugger = Debugger.new(logger)
     end
 
     def run
       file_names.each do |file_name|
         ::File.open(file_name) do |file|
-          logging("Open file: #{file_name}")
+          @debugger.out("Open file: #{file_name}")
 
           file.each_line do |line|
             next if line =~ /\A#/ # LogDevice's header
@@ -37,10 +37,6 @@ module Rreplay
         end
       end
 
-
-      def logging(msg)
-        @logger.write("#{Time.now.iso8601} - #{msg}") if @logger
-      end
 
       def http_call(orig_request)
         uri = URI(::File.join(@endpoint, orig_request['path'], orig_request['query_strings']))
@@ -69,10 +65,22 @@ module Rreplay
 
         Net::HTTP.start(uri.hostname, uri.port,
                         :use_ssl => uri.scheme == 'https') {|http|
-          binding.irb
           response = http.request(request)
         }
       end
+  end
+
+  private
+
+  class Debugger
+    def initialize(logger, debug = true)
+      @logger = logger
+      @debug = !logger.nil? && debug
+    end
+
+    def out(msg)
+      @logger.write("#{Time.now.iso8601} - #{msg}") if @debug
+    end
   end
 
   class Deserializer
