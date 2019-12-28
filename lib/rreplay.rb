@@ -3,6 +3,7 @@ require 'msgpack'
 require 'json'
 require 'net/http'
 require 'uri'
+require_relative 'rreplay/debugger'
 
 module Rreplay
   class ReplayRunner
@@ -71,17 +72,6 @@ module Rreplay
   end
 
   private
-
-  class Debugger
-    def initialize(logger, debug = true)
-      @logger = logger
-      @debug = !logger.nil? && debug
-    end
-
-    def out(msg)
-      @logger.write("#{Time.now.iso8601} - #{msg}") if @debug
-    end
-  end
 
   class Deserializer
     def initialize(format = :msgpack)

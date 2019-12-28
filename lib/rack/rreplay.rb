@@ -4,6 +4,7 @@ require 'securerandom'
 require 'msgpack'
 require 'json'
 require 'time'
+require_relative '../rreplay/debugger'
 
 module Rack
   class Rreplay
@@ -37,7 +38,7 @@ module Rack
           # @params kwargs[:debug] if true, output debugging logs to stderr
           def initialize(app, kwargs)
             @app = app
-            @debug = kwargs[:debug] || false
+            @debugger = ::Rreplay::Debugger.new($stderr, kwargs[:debug] || false)
             @sample = kwargs[:sample] || 10
             @extra_header_keys = kwargs[:extra_header_keys] || []
             @serializer = Serializer.new(kwargs[:format])
@@ -59,9 +60,9 @@ module Rack
             end
             @@counter += 1
 
-            if @debug
+            @debugger.out do
               payload ||= serialize(env, res)
-              $stderr.write("[Rreplay DEBUG]#{Time.now}: counter: #{@@counter}, sample: #{@sample}, payload: #{payload}")
+              "[Rreplay DEBUG]#{Time.now}: counter: #{@@counter}, sample: #{@sample}, payload: #{payload}"
             end
           end
 
