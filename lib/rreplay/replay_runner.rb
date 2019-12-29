@@ -23,7 +23,7 @@ module Rreplay
           file.each_line do |line|
             next if line.start_with?('#') # LogDevice's header
 
-            record = @format.deserializer.call(line)
+            record = @format.deserializer.call(line.chomp)
             request = record["request"]
             result, response_time = http_call(request)
             @debugger.out {
