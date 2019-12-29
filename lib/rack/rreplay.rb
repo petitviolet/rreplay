@@ -18,20 +18,26 @@ module Rack
       #
       # @param directory [String] rreplay dump file directory, and if nil, use logger as debug
       # @param logger [IO] if directory is nil, logger can be given
-      def Middleware(directory:, logger: nil)
+      def Middleware(directory:, format: :msgpack, logger: nil)
+        format = ::Rreplay::Format.of(format)
         if directory
           ::FileUtils.mkdir_p(directory)
-          logger = ::Logger::LogDevice.new(::File.join(directory, LOG_FILE_NAME_PREFIX), shift_age: 10, shift_size: 1048576)
+          logger = ::Logger::LogDevice.new(
+            ::File.join(directory, LOG_FILE_NAME_PREFIX + format.file_suffix),
+            shift_age: 10,
+            shift_size: 1048576,
+          )
         else
           logger = logger
         end
-        class_definition(logger)
+        class_definition(logger, format)
       end
 
-      private def class_definition(logger)
+      private def class_definition(logger, format)
         Class.new do
           @@counter = 0
           @@logger = logger
+          @@format = format
 
           # @params kwargs[:sample] [Integer] output sample (if 10, output a log once every 10 requests)
           # @params kwargs[:extra_header_keys] [Array[String]] more header keys
@@ -42,7 +48,6 @@ module Rack
             @debugger = ::Rreplay::Debugger.new($stderr, kwargs[:debug] || false)
             @sample = kwargs[:sample] || 10
             @extra_header_keys = kwargs[:extra_header_keys] || []
-            @format = ::Rreplay::Format.of(kwargs[:format])
           end
 
           def call(env)
@@ -77,7 +82,7 @@ module Rack
               'request' => request_hash(env),
               'response' => response_hash(res)
             }
-            @format.serializer.call(hash)
+            @@format.serializer.call(hash)
           end
 
           def response_hash(res)
