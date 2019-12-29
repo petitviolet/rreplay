@@ -31,6 +31,7 @@ class RreplayTest < Minitest::Unit::TestCase
     expected = {
       time: time,
       uuid: String,
+      response_time: Float,
       request: {
         method: 'GET',
         body: nil,
@@ -44,14 +45,14 @@ class RreplayTest < Minitest::Unit::TestCase
         query_strings: ''
       },
       response: {
-        body: DEFAULT_RESPONSE_BODY,
+        body: DEFAULT_RESPONSE_BODY.join(''),
         headers: DEFAULT_HEADERS,
         status: DEFAULT_STATUS
       },
     }
     run_request(env: {}, response: {}) do |app|
-      Rack::Rreplay.Middleware(directory: nil, logger: output)
-        .new(app, sample: 1, extra_header_keys: %w[ACCESS_TOKEN], format: :json)
+      Rack::Rreplay.Middleware(directory: nil, format: :json,  logger: output)
+        .new(app, sample: 1, extra_header_keys: %w[ACCESS_TOKEN])
     end
 
     assert_json_match(expected, JSON.parse(output.string))

@@ -1,5 +1,5 @@
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
-require "rreplay"
+require "rack/rreplay"
 
 require "minitest/autorun"
 require 'json_expressions/minitest'
