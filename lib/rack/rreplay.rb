@@ -92,7 +92,7 @@ module Rack
             {
               'status' => status,
               'headers' => headers,
-              'body' => body
+              'body' => body.join(''),
             }
           end
 
