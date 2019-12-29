@@ -80,7 +80,7 @@ module Rack
             hash = {
               'uuid' => uuid,
               'time' => end_time.iso8601,
-              'response_time' => (end_time - start_time),
+              'response_time' => (end_time - start_time).to_s,
               'request' => request_hash(env),
               'response' => response_hash(res)
             }

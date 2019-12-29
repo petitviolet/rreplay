@@ -31,7 +31,7 @@ class RreplayTest < Minitest::Unit::TestCase
     expected = {
       time: time,
       uuid: String,
-      response_time: Float,
+      response_time: String,
       request: {
         method: 'GET',
         body: nil,
