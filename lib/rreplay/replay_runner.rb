@@ -21,7 +21,7 @@ module Rreplay
           @debugger.out { "Open file: #{file_name}" }
 
           file.each_line do |line|
-            next if line =~ /\A#/ # LogDevice's header
+            next if line.start_with?('#') # LogDevice's header
 
             record = @format.deserializer.call(line)
             request = record["request"]
