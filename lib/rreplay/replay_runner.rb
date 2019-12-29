@@ -8,11 +8,11 @@ require_relative './format'
 
 module Rreplay
   class ReplayRunner
-    def initialize(endpoint, target, format: :msgpack, logger: $stderr)
+    def initialize(endpoint, target, format: :msgpack, debug: false)
       @endpoint = endpoint
       @format = Rreplay::Format.of(format)
       @target = target
-      @debugger = Debugger.new(logger)
+      @debugger = Debugger.new($stderr, debug)
     end
 
     def run

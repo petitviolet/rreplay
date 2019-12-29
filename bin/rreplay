@@ -4,8 +4,8 @@ require 'optparse'
 require "bundler/setup"
 require "rreplay/replay_runner"
 
-def main(endpoint, target, format: :msgpack, logger: $stderr)
-  runner = Rreplay::ReplayRunner.new(endpoint, target, format: format, logger: logger)
+def main(endpoint, target, format: :msgpack, verbose: false)
+  runner = Rreplay::ReplayRunner.new(endpoint, target, format: format, debug: verbose)
   runner.run
 end
 
@@ -14,6 +14,7 @@ class CLI
     @argv = argv
     @opts = {
       format: :msgpack,
+      verbose: false,
     }
   end
 
@@ -22,6 +23,8 @@ class CLI
 
     endpoint = args.shift
     target = args.shift
+
+    show_usage if (endpoint.nil? || target.nil?)
 
     [{ endpoint: endpoint, target: target }, @opts]
   rescue => e
@@ -41,8 +44,9 @@ class CLI
         "#{opt.summary_indent}target: HTTP requests dump file/directory using Rack::Rreplay middleware.",
       )
       opt.separator('options:')
-      opt.on('-h', '--help') { |_| show_usage }
+      opt.on('-h', '--help', 'show this help') { |_| show_usage }
       opt.on('-f', '--format VALUE', [:json, :msgpack], 'json or msgpack') { |v| @opts[:format] = v.to_sym }
+      opt.on('-v', '--[no-]verbose', 'show debug logs') { |v| @opts[:verbose] = v }
       @parser = opt
     end
 
@@ -57,4 +61,4 @@ end
 
 args, opts = CLI.new.inputs
 
-main(args[:endpoint], args[:target], format: opts[:format])
+main(args[:endpoint], args[:target], format: opts[:format], verbose: opts[:verbose])
