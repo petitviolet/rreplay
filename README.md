@@ -39,6 +39,8 @@ This configuration enables rreplay to record HTTP request and response, and writ
 
 Please see the implementation of [rack/rreplay.rb](https://github.com/petitviolet/rreplay/blob/master/lib/rack/rreplay.rb).
 
+![demo](./rreplay-demo-record.gif)
+
 ### HTTP request replay
 
 Use `bundle exec rreplay <endpoint> <target>` to send recorded HTTP request in <target> to <endpoint>.
@@ -49,6 +51,8 @@ $ bundle exec rreplay 'https://example.com' ./rreplay_tmp/rreplay.log.msgpack --
 ```
 
 Please call `bundle exec rreplay --help` to see arguments and available options.
+
+![demo](./rreplay-demo-replay.gif)
 
 ## Development
 
