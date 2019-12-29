@@ -18,13 +18,32 @@ module Rreplay
     def run
       file_names.each do |file_name|
         ::File.open(file_name) do |file|
-          @debugger.out("Open file: #{file_name}")
+          @debugger.out { "Open file: #{file_name}" }
 
           file.each_line do |line|
             next if line =~ /\A#/ # LogDevice's header
 
-            request = @format.deserializer.call(line)["request"]
-            http_call(request)
+            record = @format.deserializer.call(line)
+            request = record["request"]
+            result = http_call(request)
+            @debugger.out {
+              response_json = {
+                status: result.code,
+                headers: record['response']['headers'].reduce({}) do |acc, (key, _)|
+                  acc.merge({key => result[key]})
+                end,
+                body: Array(result.body),
+              }
+              <<~EOF
+              #{record['uuid']}:
+              * request:
+                #{request}
+              * response(expected):
+                #{record['response']}
+              * response(actual):
+                #{response_json}
+              EOF
+            }
           end
         end
       end
