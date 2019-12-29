@@ -4,12 +4,12 @@ require 'securerandom'
 require 'msgpack'
 require 'json'
 require 'time'
+require_relative '../rreplay'
 require_relative '../rreplay/debugger'
 require_relative '../rreplay/format'
 
 module Rack
   class Rreplay
-    LOG_FILE_NAME_PREFIX = 'rreplay.log'
 
     class << self
       # ==sample
@@ -23,7 +23,7 @@ module Rack
         if directory
           ::FileUtils.mkdir_p(directory)
           logger = ::Logger::LogDevice.new(
-            ::File.join(directory, LOG_FILE_NAME_PREFIX + format.file_suffix),
+            ::File.join(directory, ::Rreplay::LOG_FILE_NAME_PREFIX + format.file_suffix),
             shift_age: 10,
             shift_size: 1048576,
           )

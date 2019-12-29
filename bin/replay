@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require "bundler/setup"
-require "rreplay"
+require "rreplay/replay_runner"
 
 def main(endpoint, target, format: :msgpack, logger: $stderr)
   runner = Rreplay::ReplayRunner.new(endpoint, target, format: format, logger: logger)
