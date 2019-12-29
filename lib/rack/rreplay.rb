@@ -13,8 +13,8 @@ module Rack
 
     class << self
       # ==sample
-      # use Rack::Rreplay.Middleware(directory: './tmp'),
-      #    sample: 5, extra_header_keys: %w[ACCESS_TOKEN], format: :json, debug: true
+      # use Rack::Rreplay.Middleware(directory: './tmp', format: :json),
+      #    sample: 5, extra_header_keys: %w[ACCESS_TOKEN], debug: true
       #
       # @param directory [String] rreplay dump file directory, and if nil, use logger as debug
       # @param logger [IO] if directory is nil, logger can be given
