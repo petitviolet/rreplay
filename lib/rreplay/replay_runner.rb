@@ -22,8 +22,13 @@ module Rreplay
 
           file.each_line do |line|
             next if line.start_with?('#') # LogDevice's header
+            line.chomp!
 
-            record = @format.deserializer.call(line.chomp)
+            begin
+              record = @format.deserializer.call(line)
+            rescue => e
+              raise "Failed to deserialize. err = #{e.inspect}, line = #{line}", e
+            end
             request = record["request"]
             result, response_time = http_call(request)
             @debugger.out {
