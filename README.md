@@ -23,7 +23,32 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### HTTP request/resopnse recording
+
+Use `Rack::Rreplay`.
+
+In 'config.ru' file:
+
+```ruby
+require 'rack/rreplay'
+use Rack::Rreplay.Middleware(directory: './rreplay_tmp', format: :json),
+    { sample: 5, extra_header_keys: %w[ACCESS_TOKEN], debug: true }
+```
+
+This configuration enables rreplay to record HTTP request and response, and write records into `./rreplay_tmp` directory files with specified format(json or msgpack).
+
+Please see the implementation of [rack/rreplay.rb](https://github.com/petitviolet/rreplay/blob/master/lib/rack/rreplay.rb).
+
+### HTTP request replay
+
+Use `bundle exec rreplay <endpoint> <target>` to send recorded HTTP request in <target> to <endpoint>.
+
+```console
+$ bundle exec rreplay 'http://localhost:4567' ./rreplay_tmp/ --format json --verbose
+$ bundle exec rreplay 'https://example.com' ./rreplay_tmp/rreplay.log.msgpack --format msgpack
+```
+
+Please call `bundle exec rreplay --help` to see arguments and available options.
 
 ## Development
 
