@@ -4,8 +4,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["petitviolet"]
   spec.email         = ["violethero0820@gmail.com"]
 
-  spec.summary       = %q{A rack middleware to dump request and response to replay request}
-  spec.description   = %q{A rack middleware to dump request and response to replay request}
+  spec.summary       = %q{A rack middleware and replayer HTTP request/response}
+  spec.description   = %q{A rack middleware to dump request and response, and replayer of recorded requests}
   spec.homepage      = "https://github.com/petitviolet/rreplay"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
