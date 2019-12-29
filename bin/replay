@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
 require "bundler/setup"
 require "rreplay/replay_runner"
 
@@ -8,8 +9,52 @@ def main(endpoint, target, format: :msgpack, logger: $stderr)
   runner.run
 end
 
-endpoint = ARGV.shift
-target = ARGV.shift
-format = ARGV.shift || :msgpack
+class CLI
+  def initialize(argv = ARGV)
+    @argv = argv
+    @opts = {
+      format: :msgpack,
+    }
+  end
 
-main(endpoint, target, format: format)
+  def inputs
+    args = parser.parse(@argv)
+
+    endpoint = args.shift
+    target = args.shift
+
+    [{ endpoint: endpoint, target: target }, @opts]
+  rescue => e
+    show_usage(e)
+  end
+
+  private
+
+    def parser
+      return @parser if @parser
+
+      opt = OptionParser.new
+      opt.banner = "Usage: #{__FILE__} <endpoint> <target> [options]"
+      opt.on_head(
+        "arguments:",
+        "#{opt.summary_indent}endpoint: root URI to send HTTP requests. e.g. https://example.com, http://www.example.org",
+        "#{opt.summary_indent}target: HTTP requests dump file/directory using Rack::Rreplay middleware.",
+      )
+      opt.separator('options:')
+      opt.on('-h', '--help') { |_| show_usage }
+      opt.on('-f', '--format VALUE', [:json, :msgpack], 'json or msgpack') { |v| @opts[:format] = v.to_sym }
+      @parser = opt
+    end
+
+    def show_usage(error = nil)
+      puts "error: #{error.message}\n" if error
+      puts <<~EOF
+      #{parser.to_s}
+      EOF
+      exit 1
+    end
+end
+
+args, opts = CLI.new.inputs
+
+main(args[:endpoint], args[:target], format: opts[:format])
