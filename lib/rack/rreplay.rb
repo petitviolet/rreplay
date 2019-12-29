@@ -51,34 +51,36 @@ module Rack
           end
 
           def call(env)
+            start_time = Time.now
             @app.call(env).tap do |res|
-              write(env, res)
+              write(start_time, env, res)
             end
           end
 
           private
 
-          def write(env, res)
+          def write(start_time, env, res)
             payload = nil
             if (@@counter % @sample).zero?
-              payload = serialize(env, res)
+              payload = serialize(start_time, env, res)
               @@logger.write(payload + "\n")
             end
             @@counter += 1
 
             @debugger.out do
-              payload ||= serialize(env, res)
+              payload ||= serialize(start_time, env, res)
               "[Rreplay DEBUG]#{Time.now}: counter: #{@@counter}, sample: #{@sample}, payload: #{payload}"
             end
           end
 
-          def serialize(env, res)
+          def serialize(start_time, env, res)
             uuid = SecureRandom.uuid
-            time = Time.now.iso8601
+            end_time = Time.now
 
             hash = {
               'uuid' => uuid,
-              'time' => time,
+              'time' => end_time.iso8601,
+              'response_time' => (end_time - start_time),
               'request' => request_hash(env),
               'response' => response_hash(res)
             }

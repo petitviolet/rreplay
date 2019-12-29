@@ -25,7 +25,7 @@ module Rreplay
 
             record = @format.deserializer.call(line)
             request = record["request"]
-            result = http_call(request)
+            result, response_time = http_call(request)
             @debugger.out {
               response_json = {
                 status: result.code,
@@ -38,10 +38,12 @@ module Rreplay
               #{record['uuid']}:
               * request:
                 #{request}
-              * response(expected):
-                #{record['response']}
               * response(actual):
+                #{response_time} sec
                 #{response_json}
+              * response(recorded):
+                #{record['response_time']} sec
+                #{record['response']}
               EOF
             }
           end
@@ -86,10 +88,12 @@ module Rreplay
           req.body = body
         end
 
-        Net::HTTP.start(uri.hostname, uri.port,
+        start_time = Time.now
+        response = Net::HTTP.start(uri.hostname, uri.port,
                         :use_ssl => uri.scheme == 'https') { |http|
-          response = http.request(request)
+          http.request(request)
         }
+        [response, Time.now - start_time]
       end
   end
 
