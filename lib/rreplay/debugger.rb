@@ -5,13 +5,10 @@ module Rreplay
       @debug = !logger.nil? && debug
     end
 
-    def out(msg = nil)
+    def out(&block)
       return unless @debug
-      if block_given?
-        msg = yield
-      end
 
-      @logger.write("#{Time.now.iso8601} - #{msg}\n")
+      @logger.write("#{Time.now.iso8601} - #{block.call}\n")
     end
   end
 end
