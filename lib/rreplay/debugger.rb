@@ -11,7 +11,7 @@ module Rreplay
         msg = yield
       end
 
-      @logger.write("#{Time.now.iso8601} - #{msg}")
+      @logger.write("#{Time.now.iso8601} - #{msg}\n")
     end
   end
 end
