@@ -92,8 +92,16 @@ module Rack
             {
               'status' => status,
               'headers' => headers,
-              'body' => body.join(''),
+              'body' => response_body(body),
             }
+          end
+
+          def response_body(body)
+            return body unless body.respond_to?(:each)
+
+            [].tap do |b|
+              body.each { |content| b << content }
+            end.join('')
           end
 
           def request_hash(env)
