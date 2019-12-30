@@ -20,7 +20,6 @@ jobs:
 
     - name: Bundle install
       run: |
-        cd api
         bundle -j 4 --path vendor/bundle
 
     - name: Run Tests
