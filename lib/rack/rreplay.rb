@@ -111,7 +111,7 @@ module Rack
               'user-agent' => env['HTTP_USER_AGENT'],
             }
             @extra_header_keys.each do |key|
-              headers.merge!(key => env["HTTP_#{key}"])
+              headers.merge!(extra_header(env, key))
             end
 
             {
@@ -120,6 +120,17 @@ module Rack
               'body' => env['rack.input'].gets,
               'query_strings' => env['QUERY_STRING'].empty? ? '' : '?' + env['QUERY_STRING'],
               'headers' => headers
+            }
+          end
+
+          def extra_header(env, key)
+            { key =>
+                env[key] ||
+                  env["HTTP_#{key}"] ||
+                  env[key.upcase] ||
+                  env[key.upcase.gsub('-', '_')] ||
+                  env["HTTP_#{key.upcase}"] ||
+                  env["HTTP_#{key.upcase.gsub('-', '_')}"]
             }
           end
 

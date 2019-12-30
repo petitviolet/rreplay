@@ -6,11 +6,13 @@ class RreplayTest < Minitest::Unit::TestCase
   DEFAULT_HEADERS = {
     'Content-Type' => 'application/json',
     'ACCESS_TOKEN' => 'awesome token',
+    'X-ACCESS-TOKEN' => 'x-token',
     'Cookie' => 'cookie_key=cookie_value',
   }
   DEFAULT_RESPONSE_BODY = ["Hello, World!"]
 
-  # env.{:method, :url, :headers, :body}
+  # @param env [Hash] env['YOUR_HEADER'] = 'nice'
+  # @param response [Hash] {:method, :url, :headers, :body}
   def run_request(env: {}, response: {}, &b)
     app = lambda { |_|
       [
@@ -36,7 +38,8 @@ class RreplayTest < Minitest::Unit::TestCase
         method: 'GET',
         body: nil,
         headers: {
-          ACCESS_TOKEN: nil,
+          'ACCESS_TOKEN' => 'token',
+          'X-ACCESS-TOKEN' => 'x-token',
           :'content-type' => nil,
           :'user-agent' => nil,
           cookie: nil
@@ -50,9 +53,9 @@ class RreplayTest < Minitest::Unit::TestCase
         status: DEFAULT_STATUS
       },
     }
-    run_request(env: {}, response: {}) do |app|
+     run_request(env: {'ACCESS_TOKEN' => 'token', 'X-ACCESS-TOKEN' => 'x-token'}, response: {}) do |app|
       Rack::Rreplay.Middleware(directory: nil, format: :json,  logger: output)
-        .new(app, sample: 1, extra_header_keys: %w[ACCESS_TOKEN])
+        .new(app, sample: 1, extra_header_keys: %w[ACCESS_TOKEN X-ACCESS-TOKEN])
     end
 
     assert_json_match(expected, JSON.parse(output.string))
