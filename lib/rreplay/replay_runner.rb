@@ -16,9 +16,11 @@ module Rreplay
     end
 
     def run
+      output = OutputBuilder.new(style: :json)
+
       file_names.each do |file_name|
         ::File.open(file_name) do |file|
-          @debugger.out { "Open file: #{file_name}" }
+          @debugger.out { { message: "Open file: #{file_name}" } }
 
           file.each_line do |line|
             next if line.start_with?('#') # LogDevice's header
@@ -27,7 +29,7 @@ module Rreplay
 
             result = @http.call(record['request'])
             @debugger.out {
-              Output.new.call(record, result)
+              output.call(record, result)
             }
           end
         end
@@ -55,8 +57,15 @@ module Rreplay
 
   private
 
-    class Output
-      def initialize
+    class OutputBuilder
+      # @param style [Symbol] :json or :string
+      def initialize(style: :json)
+        @builder = case style
+                   when :json
+                     method(:build_json)
+                   else
+                     method(:build_string)
+                   end
       end
 
       # @param record [Hash]
@@ -70,12 +79,29 @@ module Rreplay
           body: Array(result.response.body),
         }
 
-        build_string(record, result.response_time, response_json)
+        @builder.call(record, result.response_time, response_json)
       end
 
       private
 
+        def build_json(record, response_time, actual_response)
+          {
+            uuid: record['uuid'],
+            response: {
+              actual: {
+                response_time: response_time,
+                response: actual_response,
+              },
+              recorded: {
+                response_time: record['response_time'],
+                record: record['response'],
+              }
+            }
+          }
+        end
+
         def build_string(record, response_time, actual_response)
+
           <<~EOF
             #{record['uuid']}:
             * request:
