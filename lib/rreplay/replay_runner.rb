@@ -9,7 +9,7 @@ require_relative './format'
 module Rreplay
   class ReplayRunner
     def initialize(endpoint, target, format: :msgpack, debug: false)
-      @endpoint = endpoint
+      @http = Http.new(endpoint)
       @format = Rreplay::Format.of(format)
       @target = target
       @debugger = Debugger.new($stderr, debug)
@@ -23,33 +23,11 @@ module Rreplay
           file.each_line do |line|
             next if line.start_with?('#') # LogDevice's header
             line.chomp!
+            record = deserialize(line)
 
-            begin
-              record = @format.deserializer.call(line)
-            rescue => e
-              raise "Failed to deserialize. err = #{e.inspect}, line = #{line}", e
-            end
-            request = record["request"]
-            result, response_time = http_call(request)
+            result = @http.call(record['request'])
             @debugger.out {
-              response_json = {
-                status: result.code,
-                headers: record['response']['headers'].reduce({}) do |acc, (key, _)|
-                  acc.merge({key => result[key]})
-                end,
-                body: Array(result.body),
-              }
-              <<~EOF
-              #{record['uuid']}:
-              * request:
-                #{request}
-              * response(actual):
-                #{response_time} sec
-                #{response_json}
-              * response(recorded):
-                #{record['response_time']} sec
-                #{record['response']}
-              EOF
+              Output.new.call(record, result)
             }
           end
         end
@@ -67,8 +45,59 @@ module Rreplay
         end
       end
 
+      def deserialize(line)
+        @format.deserializer.call(line)
+      rescue => e
+        raise "Failed to deserialize. err = #{e.inspect}, line = #{line}", e
+      end
 
-      def http_call(orig_request)
+  end
+
+  private
+
+    class Output
+      def initialize
+      end
+
+      # @param record [Hash]
+      # @param result [Http::Result]
+      def call(record, result)
+        response_json = {
+          status: result.response.code,
+          headers: record['response']['headers'].reduce({}) do |acc, (key, _)|
+            acc.merge({key => result.response[key]})
+          end,
+          body: Array(result.response.body),
+        }
+
+        build_string(record, result.response_time, response_json)
+      end
+
+      private
+
+        def build_string(record, response_time, actual_response)
+          <<~EOF
+            #{record['uuid']}:
+            * request:
+              #{record['request']}
+            * response(actual):
+              #{response_time} sec
+              #{actual_response}
+            * response(recorded):
+              #{record['response_time']} sec
+              #{record['response']}
+          EOF
+        end
+    end
+
+    class Http
+      Result = Struct.new(:response, :response_time)
+
+      def initialize(endpoint)
+        @endpoint = endpoint
+      end
+
+      def call(orig_request)
         uri = URI(::File.join(@endpoint, orig_request['path'], orig_request['query_strings']))
         body = orig_request['body']
         headers = orig_request['headers']
@@ -95,13 +124,10 @@ module Rreplay
 
         start_time = Time.now
         response = Net::HTTP.start(uri.hostname, uri.port,
-                        :use_ssl => uri.scheme == 'https') { |http|
+                                   :use_ssl => uri.scheme == 'https') { |http|
           http.request(request)
         }
-        [response, Time.now - start_time]
+        Result.new(response, Time.now - start_time)
       end
-  end
-
-  private
-
+    end
 end
