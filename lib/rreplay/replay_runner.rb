@@ -99,7 +99,7 @@ module Rreplay
                 record: record['response'],
               }
             }
-          }.to_json
+          }
         end
 
         def build_string(record, response_time, actual_response)
@@ -154,7 +154,7 @@ module Rreplay
                                    :use_ssl => uri.scheme == 'https') { |http|
           http.request(request)
         }
-        Result.new(response, Time.now - start_time)
+        Result.new(response, (Time.now - start_time).to_s)
       end
     end
 end
