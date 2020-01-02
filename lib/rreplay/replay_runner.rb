@@ -78,7 +78,7 @@ module Rreplay
           headers: record['response']['headers'].reduce({}) do |acc, (key, _)|
             acc.merge({key => result.response[key]})
           end,
-          body: Array(result.response.body),
+          body: Array(result.response.body).join(''),
         }
 
         @builder.call(record, result.response_time, response_hash)
