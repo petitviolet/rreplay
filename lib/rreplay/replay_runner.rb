@@ -34,6 +34,8 @@ module Rreplay
           end
         end
       end
+    rescue Interrupt
+      @debugger.out { "Interrupted." }
     end
 
     private
