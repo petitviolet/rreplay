@@ -26,6 +26,7 @@ module Rack
             ::File.join(directory, ::Rreplay::LOG_FILE_NAME_PREFIX + format.file_suffix),
             shift_age: 10,
             shift_size: 1048576,
+            binmode: format.is_binary?
           )
         else
           logger = logger
