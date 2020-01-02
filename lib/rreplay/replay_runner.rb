@@ -12,7 +12,7 @@ module Rreplay
       @http = Http.new(endpoint)
       @format = Rreplay::Format.of(format)
       @target = target
-      @debugger = Debugger.new($stderr, debug)
+      @debugger = Debugger.new($stdout, debug)
     end
 
     def run
