@@ -73,7 +73,7 @@ module Rreplay
       # @param record [Hash]
       # @param result [Http::Result]
       def call(record, result)
-        response_json = {
+        response_hash = {
           status: result.response.code,
           headers: record['response']['headers'].reduce({}) do |acc, (key, _)|
             acc.merge({key => result.response[key]})
@@ -81,7 +81,7 @@ module Rreplay
           body: Array(result.response.body),
         }
 
-        @builder.call(record, result.response_time, response_json)
+        @builder.call(record, result.response_time, response_hash)
       end
 
       private
@@ -99,21 +99,20 @@ module Rreplay
                 record: record['response'],
               }
             }
-          }
+          }.to_json
         end
 
         def build_string(record, response_time, actual_response)
-
           <<~EOF
             #{record['uuid']}:
             * request:
-              #{record['request']}
+              #{record['request'].to_json}
             * response(actual):
               #{response_time} sec
-              #{actual_response}
+              #{actual_response.to_json}
             * response(recorded):
               #{record['response_time']} sec
-              #{record['response']}
+              #{record['response'].to_json}
           EOF
         end
     end
