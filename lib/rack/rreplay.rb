@@ -19,6 +19,9 @@ module Rack
       # @param directory [String] rreplay dump file directory, and if nil, use logger as debug
       # @param logger [IO] if directory is nil, logger can be given
       def Middleware(directory:, format: :msgpack, logger: nil)
+        if directory.nil? && logger.nil?
+          raise "Invalid arguments. directory: or logger: must be given", ArgumentError
+        end
         format = ::Rreplay::Format.of(format)
         if directory
           ::FileUtils.mkdir_p(directory)
@@ -28,8 +31,6 @@ module Rack
             shift_size: 1048576,
             binmode: format.is_binary?
           )
-        else
-          logger = logger
         end
         class_definition(logger, format)
       end
