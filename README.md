@@ -1,5 +1,7 @@
 # Rreplay
 
+[![rreplay](https://badge.fury.io/rb/rreplay.svg)](https://badge.fury.io/rb/rreplay)
+
 Replay HTTP request and is able to assert if the response is expected.
 
 - Record HTTP request and response into file
