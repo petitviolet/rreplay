@@ -1,6 +1,7 @@
 # Rreplay
 
 [![rreplay](https://badge.fury.io/rb/rreplay.svg)](https://badge.fury.io/rb/rreplay)
+[![Actions Status](https://github.com/petitviolet/rreplay/workflows/test/badge.svg)](https://github.com/petitviolet/rreplay/actions)
 
 Replay HTTP request and is able to assert if the response is expected.
 
